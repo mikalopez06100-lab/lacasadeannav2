@@ -12,12 +12,11 @@ import {
   useFaq,
   useLoader,
   useProjectsDrag,
-  useScrollPercent,
   useSiteAnimations,
-  useStudioReveal,
-  scrollToAnchor,
 } from "@/hooks/useSiteAnimations";
+import { useScrollPercent } from "@/hooks/useScrollPercent";
 import { getLenis } from "@/lib/lenis-instance";
+import { scrollToAnchor } from "@/lib/scroll";
 
 const bandItems = [
   "Conception & plans 3D",
@@ -28,18 +27,24 @@ const bandItems = [
   "Particuliers & professionnels",
 ];
 
-function ManifLine({
+function ManifChunk({
+  from,
   children,
-  innerClassName = "",
+  className = "",
 }: {
+  from: "left" | "right";
   children: React.ReactNode;
-  innerClassName?: string;
+  className?: string;
 }) {
   return (
-    <span className="manif-line">
-      <span className={`manif-line-inner fr ${innerClassName}`.trim()}>{children}</span>
+    <span className="manif-chunk" data-from={from}>
+      <span className={`manif-chunk-inner fr ${className}`.trim()}>{children}</span>
     </span>
   );
+}
+
+function ManifLine({ children }: { children: React.ReactNode }) {
+  return <span className="manif-line">{children}</span>;
 }
 
 export function LandingPage() {
@@ -69,7 +74,6 @@ export function LandingPage() {
   const openMenu = () => setMenuOpen(true);
 
   useProjectsDrag();
-  useStudioReveal();
 
   useEffect(() => {
     if (!ready) return;
@@ -169,14 +173,24 @@ export function LandingPage() {
         <div className="manif-in">
           <div className="sec-no">N°—02 / Le parti pris</div>
           <h2>
-            <ManifLine>Décorer</ManifLine>
-            <ManifLine innerClassName="it tab">n&apos;est pas</ManifLine>
-            <br />
-            <ManifLine>embellir.</ManifLine>
-            <ManifLine innerClassName="it tab">C&apos;est</ManifLine>
-            <br />
-            <ManifLine>composer</ManifLine>
-            <ManifLine innerClassName="it tab">une vie.</ManifLine>
+            <ManifLine>
+              <ManifChunk from="left">Décorer </ManifChunk>
+              <ManifChunk from="right" className="it tab">
+                n&apos;est pas
+              </ManifChunk>
+            </ManifLine>
+            <ManifLine>
+              <ManifChunk from="left">embellir. </ManifChunk>
+              <ManifChunk from="right" className="it tab">
+                C&apos;est
+              </ManifChunk>
+            </ManifLine>
+            <ManifLine>
+              <ManifChunk from="left">composer </ManifChunk>
+              <ManifChunk from="right" className="it tab">
+                une vie.
+              </ManifChunk>
+            </ManifLine>
           </h2>
           <div className="manif-foot">
             <p className="lead">

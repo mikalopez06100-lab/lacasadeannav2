@@ -28,6 +28,7 @@ export function useSiteAnimations(ready: boolean) {
     setLenis(lenis);
 
     lenis.on("scroll", ScrollTrigger.update);
+    ScrollTrigger.defaults({ scroller: document.documentElement });
 
     ScrollTrigger.scrollerProxy(document.documentElement, {
       scrollTop(value) {
@@ -50,6 +51,7 @@ export function useSiteAnimations(ready: boolean) {
 
     const raf = (time: number) => {
       lenis.raf(time);
+      ScrollTrigger.update();
       requestAnimationFrame(raf);
     };
     requestAnimationFrame(raf);
@@ -70,6 +72,10 @@ export function useSiteAnimations(ready: boolean) {
 
     if (reduced) return;
 
+    let manifIo: IntersectionObserver | null = null;
+    let manifScrollCheck: (() => void) | null = null;
+    let manifFallbackTimer: number | null = null;
+
     const ctx = gsap.context(() => {
       gsap.set(".hero-mark .l span", { yPercent: 105 });
       gsap.to(".hero-mark .l span", {
@@ -85,42 +91,85 @@ export function useSiteAnimations(ready: boolean) {
       });
 
       const manifSection = document.querySelector(".manif");
-      const manifLines = gsap.utils.toArray<HTMLElement>(".manif-line-inner");
-      if (manifSection && manifLines.length > 0) {
+      const manifChunks = gsap.utils.toArray<HTMLElement>(".manif-chunk-inner");
+      if (manifSection && manifChunks.length > 0) {
+        const manifOffset = (el: HTMLElement) => {
+          const side = el.closest(".manif-chunk")?.getAttribute("data-from");
+          const w = el.offsetWidth || 120;
+          return (side === "right" ? 1 : -1) * Math.min(w * 1.1, 280);
+        };
+
+        let manifRevealed = false;
         const revealManif = () => {
-          gsap.to(manifLines, {
-            yPercent: 0,
-            duration: 1.1,
+          if (manifRevealed) return;
+          manifRevealed = true;
+          gsap.to(manifChunks, {
+            x: 0,
+            autoAlpha: 1,
+            duration: 1.15,
             ease: "power3.out",
-            stagger: 0.1,
+            stagger: 0.11,
             overwrite: true,
           });
         };
 
-        gsap.set(manifLines, { yPercent: 110 });
+        manifChunks.forEach((el) => {
+          gsap.set(el, { x: manifOffset(el), autoAlpha: 0 });
+        });
 
         ScrollTrigger.create({
           trigger: manifSection,
           start: "top 85%",
           once: true,
           onEnter: revealManif,
+          invalidateOnRefresh: true,
         });
 
-        requestAnimationFrame(() => {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                revealManif();
+                io.disconnect();
+              }
+            });
+          },
+          { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+        );
+        manifIo = io;
+        io.observe(manifSection);
+
+        manifScrollCheck = () => {
           const rect = manifSection.getBoundingClientRect();
-          if (rect.top < window.innerHeight * 0.9) {
+          if (rect.top < window.innerHeight * 0.88 && rect.bottom > 0) {
             revealManif();
           }
-        });
+        };
+        manifScrollCheck();
+        getLenis()?.on("scroll", manifScrollCheck);
 
-        window.setTimeout(() => {
-          manifLines.forEach((line) => {
-            const y = gsap.getProperty(line, "yPercent") as number;
-            if (y != null && Math.abs(Number(y)) > 50) {
-              gsap.set(line, { yPercent: 0, clearProps: "transform" });
-            }
-          });
-        }, 2500);
+        manifFallbackTimer = window.setTimeout(() => {
+          if (!manifRevealed) revealManif();
+        }, 1800);
+      }
+
+      const studioMain = document.querySelector(".studio-pic .main");
+      const studioImg = studioMain?.querySelector("img");
+      if (studioMain && studioImg) {
+        gsap.fromTo(
+          studioImg,
+          { scale: 0.86, transformOrigin: "50% 50%", force3D: true },
+          {
+            scale: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: studioMain,
+              start: "top 90%",
+              end: "top 38%",
+              scrub: 0.75,
+            },
+          }
+        );
       }
 
       gsap.utils.toArray<HTMLElement>(".vrow").forEach((row, i) => {
@@ -190,41 +239,16 @@ export function useSiteAnimations(ready: boolean) {
       }
 
       ScrollTrigger.refresh();
+      window.setTimeout(() => ScrollTrigger.refresh(), 400);
     });
 
-    return () => ctx.revert();
-  }, [ready]);
-}
-
-export function useScrollPercent(readyFlag: boolean) {
-  useEffect(() => {
-    if (!readyFlag) return;
-    const hpct = document.getElementById("hpct");
-    if (!hpct) return;
-
-    const update = () => {
-      const lenis = getLenis();
-      const scroll = lenis ? lenis.scroll : window.scrollY;
-      const limit = lenis
-        ? lenis.limit
-        : document.documentElement.scrollHeight - window.innerHeight;
-      const p = limit > 0 ? Math.round((scroll / limit) * 100) : 0;
-      hpct.textContent = `${p}%`;
-    };
-
-    const lenis = getLenis();
-    if (lenis) {
-      lenis.on("scroll", update);
-    } else {
-      window.addEventListener("scroll", update, { passive: true });
-    }
-    update();
-
     return () => {
-      if (lenis) lenis.off("scroll", update);
-      else window.removeEventListener("scroll", update);
+      if (manifFallbackTimer) window.clearTimeout(manifFallbackTimer);
+      if (manifScrollCheck) getLenis()?.off("scroll", manifScrollCheck);
+      manifIo?.disconnect();
+      ctx.revert();
     };
-  }, [readyFlag]);
+  }, [ready]);
 }
 
 export function useCustomCursor() {
@@ -402,34 +426,3 @@ export function useProjectsDrag() {
   }, []);
 }
 
-export function useStudioReveal() {
-  useEffect(() => {
-    const io = new IntersectionObserver(
-      (es) => {
-        es.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.18 }
-    );
-    document.querySelectorAll(".studio-pic").forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-}
-
-export function scrollToAnchor(hash: string, onDone?: () => void) {
-  const id = hash.replace("#", "");
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  const lenis = getLenis();
-  if (lenis) {
-    lenis.scrollTo(el, { offset: -80, onComplete: onDone });
-  } else {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    onDone?.();
-  }
-}

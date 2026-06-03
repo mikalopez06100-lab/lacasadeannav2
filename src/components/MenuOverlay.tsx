@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { scrollToAnchor } from "@/hooks/useSiteAnimations";
+import { scrollToAnchor } from "@/lib/scroll";
 import { site } from "@/lib/site";
 
 type Props = {
@@ -24,6 +24,11 @@ const NAV = [
 export function MenuOverlay({ open, onClose }: Props) {
   const pathname = usePathname();
   const onHome = pathname === "/";
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -39,7 +44,7 @@ export function MenuOverlay({ open, onClose }: Props) {
     return () => document.body.classList.remove("menu-open");
   }, [open]);
 
-  if (typeof document === "undefined") return null;
+  if (!mounted) return null;
 
   return createPortal(
     <aside

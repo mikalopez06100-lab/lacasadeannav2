@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { MenuOverlay } from "@/components/MenuOverlay";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { useScrollPercent } from "@/hooks/useSiteAnimations";
+import { useScrollPercent } from "@/hooks/useScrollPercent";
 import { usePageLenis } from "@/hooks/usePageLenis";
 import { getLenis } from "@/lib/lenis-instance";
 

@@ -33,3 +33,5 @@ yarn-error.log*
 /scripts_temp/
 /public_assets_temp/
 /scripts/body-stripped.html
+
+.vercel

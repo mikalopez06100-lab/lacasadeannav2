@@ -44,6 +44,7 @@ export function usePageLenis() {
 
     const raf = (time: number) => {
       lenis.raf(time);
+      ScrollTrigger.update();
       requestAnimationFrame(raf);
     };
     requestAnimationFrame(raf);
