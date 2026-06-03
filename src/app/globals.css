@@ -52,12 +52,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 .loader-pct{position:fixed;bottom:46px;right:48px;font-family:var(--font-bricolage);
   font-size:11px;letter-spacing:.14em}
 
-/* ===== CURSOR (subtle dot, not the classic Claude one) ===== */
-.cur{position:fixed;top:0;left:0;width:6px;height:6px;border-radius:50%;
-  background:var(--ink);z-index:10000;pointer-events:none;
-  transform:translate(-50%,-50%);mix-blend-mode:difference;
-  transition:width .35s,height .35s}
-.cur.lg{width:36px;height:36px;background:var(--bg)}
+/* ===== CURSOR ===== */
+.cur{position:fixed;top:0;left:0;width:12px;height:12px;border-radius:50%;
+  background:var(--ink);z-index:10090;pointer-events:none;
+  transform:translate(-50%,-50%);
+  border:2.5px solid var(--bg);
+  box-shadow:0 0 0 1.5px var(--ink),0 2px 14px rgba(12,10,8,.45);
+  mix-blend-mode:normal;
+  transition:width .35s,height .35s,box-shadow .35s,border-width .35s}
+.cur.lg{width:40px;height:40px;border-width:2px;
+  box-shadow:0 0 0 1.5px var(--ink),0 4px 20px rgba(12,10,8,.35)}
 .cur.lg::after{content:attr(data-label);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-bricolage);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
 .cur.img-hover{width:48px;height:48px;background:var(--bg);mix-blend-mode:normal}
 @media (hover:none){.cur{display:none}body{cursor:auto}}
@@ -175,8 +179,7 @@ section{padding:120px 30px;position:relative}
 .manif-in{max-width:1280px;margin:0 auto}
 .manif h2{font-family:var(--font-fraunces),serif;font-weight:300;
   font-variation-settings:"opsz" 144,"SOFT" 60;
-  font-size:clamp(46px,8.5vw,148px);line-height:.94;letter-spacing:-.025em;
-  text-indent:8vw}
+  font-size:clamp(46px,8.5vw,148px);line-height:.94;letter-spacing:-.025em}
 .manif h2 .it{font-style:italic;font-weight:400;
   font-variation-settings:"opsz" 144,"SOFT" 100,"WONK" 1;display:inline-block}
 .manif h2 .it.tab{padding-left:.4em}
@@ -491,16 +494,17 @@ footer{background:var(--ink);color:var(--bg);padding:0 30px 30px;
   .proj-hero,.proj-cover,.proj-body,.proj-nav{padding-left:22px;padding-right:22px}
 }
 
-.manif-line{display:block;line-height:inherit}
-.manif-chunk{display:inline-block;overflow:hidden;vertical-align:bottom;line-height:inherit}
-.manif-chunk-inner{
-  display:inline-block;line-height:inherit;
-  transition:transform 1.15s cubic-bezier(.16,.78,.18,1),opacity .95s ease;
-}
-body.hero-ready .manif-chunk[data-from="left"]:not(.is-in) .manif-chunk-inner{transform:translate3d(-90px,0,0);opacity:0}
-body.hero-ready .manif-chunk[data-from="right"]:not(.is-in) .manif-chunk-inner{transform:translate3d(90px,0,0);opacity:0}
-.manif-chunk.is-in .manif-chunk-inner{transform:translate3d(0,0,0);opacity:1}
+.manif-line{display:block;padding-left:8vw;line-height:.94}
+.manif-chunk{display:inline-block;overflow:hidden;vertical-align:baseline;line-height:inherit;
+  padding-right:.06em;margin-right:-.06em}
+.manif-chunk-inner{display:inline-block;vertical-align:baseline;line-height:inherit;will-change:transform,opacity}
 .manif h2 .manif-line+.manif-line{margin-top:0}
+@media (max-width:900px){
+  .manif-line{padding-left:6vw}
+}
+@media (max-width:580px){
+  .manif-line{padding-left:0}
+}
 body.motion-on .vrow{opacity:0;transform:translateY(28px)}
 
 @media (prefers-reduced-motion:reduce){
@@ -509,6 +513,5 @@ body.motion-on .vrow{opacity:0;transform:translateY(28px)}
   body.motion-on .vrow{opacity:1;transform:none}
   .hero-mark .l span{transform:none!important}
   .manif-chunk-inner{transform:none!important;opacity:1!important}
-  .manif-chunk.is-in .manif-chunk-inner{transform:none!important;opacity:1!important}
   .studio-pic .main img{transform:none!important}
 }

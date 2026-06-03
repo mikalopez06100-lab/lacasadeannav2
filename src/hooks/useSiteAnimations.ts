@@ -87,6 +87,53 @@ export function useSiteAnimations(ready: boolean) {
         },
       });
 
+      const manifSection = document.querySelector(".manif");
+      const manifChunks = gsap.utils.toArray<HTMLElement>(".manif-chunk-inner");
+      /** Fenêtres de progression scroll (0–1) par segment — tous finis avant 100 %. */
+      const manifSlices = [
+        { start: 0, end: 0.22 },
+        { start: 0.16, end: 0.36 },
+        { start: 0.3, end: 0.5 },
+        { start: 0.44, end: 0.62 },
+        { start: 0.56, end: 0.76 },
+        { start: 0.68, end: 0.9 },
+      ];
+      if (manifSection && manifChunks.length > 0) {
+        const manifFromX = (el: HTMLElement) =>
+          el.closest(".manif-chunk")?.getAttribute("data-from") === "right" ? 48 : -48;
+
+        const updateManif = (progress: number) => {
+          manifChunks.forEach((el, i) => {
+            const slice = manifSlices[i] ?? manifSlices[manifSlices.length - 1];
+            const fromX = manifFromX(el);
+            const local = gsap.utils.clamp(
+              0,
+              1,
+              gsap.utils.mapRange(slice.start, slice.end, 0, 1, progress)
+            );
+            gsap.set(el, {
+              x: `${gsap.utils.interpolate(fromX, 0, local)}vw`,
+              opacity: local,
+              force3D: true,
+            });
+          });
+        };
+
+        manifChunks.forEach((el) => {
+          gsap.set(el, { x: `${manifFromX(el)}vw`, opacity: 0, force3D: true });
+        });
+
+        ScrollTrigger.create({
+          trigger: manifSection,
+          start: "top 92%",
+          end: "top 8%",
+          scrub: 1.25,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => updateManif(self.progress),
+          onRefresh: (self) => updateManif(self.progress),
+        });
+      }
+
       const studioMain = document.querySelector(".studio-pic .main");
       const studioImg = studioMain?.querySelector("img");
       if (studioMain && studioImg) {
