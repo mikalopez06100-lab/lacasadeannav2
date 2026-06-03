@@ -14,6 +14,7 @@ import {
   useProjectsDrag,
   useSiteAnimations,
 } from "@/hooks/useSiteAnimations";
+import { useManifReveal } from "@/hooks/useManifReveal";
 import { useScrollPercent } from "@/hooks/useScrollPercent";
 import { getLenis } from "@/lib/lenis-instance";
 import { scrollToAnchor } from "@/lib/scroll";
@@ -54,6 +55,7 @@ export function LandingPage() {
 
   useLoader(onLoaderDone);
   useSiteAnimations(ready);
+  useManifReveal(ready);
   useScrollPercent(ready);
   useCustomCursor();
   useFaq();

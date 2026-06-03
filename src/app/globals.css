@@ -493,7 +493,13 @@ footer{background:var(--ink);color:var(--bg);padding:0 30px 30px;
 
 .manif-line{display:block;line-height:inherit}
 .manif-chunk{display:inline-block;overflow:hidden;vertical-align:bottom;line-height:inherit}
-.manif-chunk-inner{display:inline-block;will-change:transform,opacity;line-height:inherit}
+.manif-chunk-inner{
+  display:inline-block;line-height:inherit;
+  transition:transform 1.15s cubic-bezier(.16,.78,.18,1),opacity .95s ease;
+}
+body.hero-ready .manif-chunk[data-from="left"]:not(.is-in) .manif-chunk-inner{transform:translate3d(-90px,0,0);opacity:0}
+body.hero-ready .manif-chunk[data-from="right"]:not(.is-in) .manif-chunk-inner{transform:translate3d(90px,0,0);opacity:0}
+.manif-chunk.is-in .manif-chunk-inner{transform:translate3d(0,0,0);opacity:1}
 .manif h2 .manif-line+.manif-line{margin-top:0}
 body.motion-on .vrow{opacity:0;transform:translateY(28px)}
 
@@ -502,6 +508,7 @@ body.motion-on .vrow{opacity:0;transform:translateY(28px)}
   .loader{display:none!important}
   body.motion-on .vrow{opacity:1;transform:none}
   .hero-mark .l span{transform:none!important}
-  .manif-chunk-inner{transform:none!important;opacity:1!important;visibility:visible!important}
+  .manif-chunk-inner{transform:none!important;opacity:1!important}
+  .manif-chunk.is-in .manif-chunk-inner{transform:none!important;opacity:1!important}
   .studio-pic .main img{transform:none!important}
 }

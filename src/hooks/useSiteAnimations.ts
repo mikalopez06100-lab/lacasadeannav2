@@ -45,6 +45,7 @@ export function useSiteAnimations(ready: boolean) {
           height: window.innerHeight,
         };
       },
+      pinType: "transform",
     });
     ScrollTrigger.addEventListener("refresh", () => lenis.resize());
     ScrollTrigger.refresh();
@@ -72,10 +73,6 @@ export function useSiteAnimations(ready: boolean) {
 
     if (reduced) return;
 
-    let manifIo: IntersectionObserver | null = null;
-    let manifScrollCheck: (() => void) | null = null;
-    let manifFallbackTimer: number | null = null;
-
     const ctx = gsap.context(() => {
       gsap.set(".hero-mark .l span", { yPercent: 105 });
       gsap.to(".hero-mark .l span", {
@@ -89,69 +86,6 @@ export function useSiteAnimations(ready: boolean) {
           document.body.classList.add("loaded");
         },
       });
-
-      const manifSection = document.querySelector(".manif");
-      const manifChunks = gsap.utils.toArray<HTMLElement>(".manif-chunk-inner");
-      if (manifSection && manifChunks.length > 0) {
-        const manifOffset = (el: HTMLElement) => {
-          const side = el.closest(".manif-chunk")?.getAttribute("data-from");
-          const w = el.offsetWidth || 120;
-          return (side === "right" ? 1 : -1) * Math.min(w * 1.1, 280);
-        };
-
-        let manifRevealed = false;
-        const revealManif = () => {
-          if (manifRevealed) return;
-          manifRevealed = true;
-          gsap.to(manifChunks, {
-            x: 0,
-            autoAlpha: 1,
-            duration: 1.15,
-            ease: "power3.out",
-            stagger: 0.11,
-            overwrite: true,
-          });
-        };
-
-        manifChunks.forEach((el) => {
-          gsap.set(el, { x: manifOffset(el), autoAlpha: 0 });
-        });
-
-        ScrollTrigger.create({
-          trigger: manifSection,
-          start: "top 85%",
-          once: true,
-          onEnter: revealManif,
-          invalidateOnRefresh: true,
-        });
-
-        const io = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                revealManif();
-                io.disconnect();
-              }
-            });
-          },
-          { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
-        );
-        manifIo = io;
-        io.observe(manifSection);
-
-        manifScrollCheck = () => {
-          const rect = manifSection.getBoundingClientRect();
-          if (rect.top < window.innerHeight * 0.88 && rect.bottom > 0) {
-            revealManif();
-          }
-        };
-        manifScrollCheck();
-        getLenis()?.on("scroll", manifScrollCheck);
-
-        manifFallbackTimer = window.setTimeout(() => {
-          if (!manifRevealed) revealManif();
-        }, 1800);
-      }
 
       const studioMain = document.querySelector(".studio-pic .main");
       const studioImg = studioMain?.querySelector("img");
@@ -242,12 +176,7 @@ export function useSiteAnimations(ready: boolean) {
       window.setTimeout(() => ScrollTrigger.refresh(), 400);
     });
 
-    return () => {
-      if (manifFallbackTimer) window.clearTimeout(manifFallbackTimer);
-      if (manifScrollCheck) getLenis()?.off("scroll", manifScrollCheck);
-      manifIo?.disconnect();
-      ctx.revert();
-    };
+    return () => ctx.revert();
   }, [ready]);
 }
 
